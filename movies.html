@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мои любимые фильмы</title>
+<style>
+  :root {
+    --bg: #d4d3d3;
+    --surface: #d4d3d3;
+    --line: #070707;
+    --text: #070707;
+    --muted: #070707;
+    --accent: #070707;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 56px 24px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .count { margin: 0; color: var(--muted); }
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .controls-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  input, select {
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  input { flex: 1 1 240px; }
+  select { flex: 0 1 200px; }
+  input:focus-visible, select:focus-visible, .card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 64px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    display: block;
+    background: var(--line);
+  }
+  .poster-stub {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    text-align: center;
+    color: var(--muted);
+    background: repeating-linear-gradient(135deg, var(--line) 0 10px, var(--surface) 10px 20px);
+  }
+  .info { padding: 12px 14px 16px; }
+  .title {
+    margin: 0 0 4px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+  .meta { margin: 0 0 4px; font-size: 0.9rem; color: var(--accent); }
+  .year { margin: 0; font-size: 0.85rem; color: var(--muted); }
+  .title { overflow-wrap: anywhere; }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  }
+  .empty {
+    grid-column: 1 / -1;
+    padding: 48px 0;
+    text-align: center;
+    color: var(--muted);
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; gap: 14px; }
+    header { padding-top: 36px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Мои любимые фильмы</h1>
+    <p class="count" id="count"></p>
+  </header>
+
+  <div class="controls">
+    <div class="controls-inner">
+      <input id="search" type="search" placeholder="Поиск по названию" aria-label="Поиск по названию">
+      <select id="genre" aria-label="Фильтр по жанру">
+        <option value="">Все жанры</option>
+      </select>
+    </div>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <script>
+    const movies = [
+      {"title": "Крёстный отец", "genre": "Криминал", "year": "1972", "poster": "images/Godfather.jpg"},
+      {"title": "1+1", "genre": "Драма, Комедия", "year": "2011", "poster": "images/Intouchables.jpg"},
+      {"title": "Крёстный отец 2", "genre": "Криминал", "year": "1974", "poster": "images/2.jpg"},
+      {"title": "12 разгневанных мужчин", "genre": "Юридическая драма", "year": "1957", "poster": "images/12.jpg"},
+      {"title": "Пролетая над гнездом кукушки", "genre": "Драма, Комедийная драма", "year": "1975", "poster": "images/ПНГК.jpg"},
+      {"title": "Умница Уилл Хантинг", "genre": "Драма, Мелодрама", "year": "1997", "poster": "images/WH.jpg"},
+      {"title": "Новый кинотеатр «Парадизо»", "genre": "Драма, Мелодрама", "year": "1988", "poster": "images/cinema.jpg"},
+      {"title": "Бегущий по лезвию", "genre": "Триллер, Антиутопия", "year": "1982", "poster": "images/BR.jpg"},
+      {"title": "Эффект бабочки", "genre": "Фантастика, Триллер, Драма", "year": "2003", "poster": "images/BE.jpg"},
+      {"title": "Человек-слон", "genre": "Драма", "year": "1980","poster": "images/man.jpg"},
+      {"title": "Иди и смотри", "genre": "Военная драма", "year": "1985","poster": "images/CAS.jpg"},
+      {"title": "Револьвер", "genre": "Триллер, Криминал", "year": "2005","poster": "images/r.jpg"},
+      {"title": "Сага о Винланде", "genre": "Аниме, Боевик, История, Приключения", "year": "2019-2023","poster": "images/VS.jpg"},
+      {"title": "Сопрано", "genre": "Драма, Криминал", "year": "1999-2007","poster": "images/Sopranos.jpg"},
+      {"title": "Берсерк", "genre": "Аниме, Фэнтези, Боевик, Драма", "year": "1997-1998","poster": "images/G.jpg"},
+      {"title": "Леон", "genre": "Боевик, Триллер, Драма, Криминал", "year": "1994","poster": "images/leon.jpg"},
+      {"title": "Лучше звоните Солу", "genre": "Драма, Криминал", "year": "2015-2022","poster": "images/BCS.jpg"},
+      {"title": "Друзья", "genre": "Комедия, Мелодрама", "year": "1994-2004","poster": "images/F.jpg"},
+      {"title": "Во все тяжкие", "genre": "Криминал, Драма, Триллер", "year": "2008-2013","poster": "images/BB.jpg"},
+      {"title": "Цельнометаллическая оболочка", "genre": "Военная драма", "year": "1987","poster": "images/FMJ.jpg"},
+      {"title": "Запах женщины", "genre": "Драма", "year": "1992","poster": "images/SW.jpg"},
+      {"title": "Зеленая миля", "genre": "Драма, Фэнтези, Криминал", "year": "1999","poster": "images/GM.jpg"},
+      {"title": "Воспоминания об убийстве", "genre": "Триллер, Криминал", "year": "2003", "poster": "images/MM.jpg"},
+      {"title": "Акира", "genre": "Аниме, Фантастика, Боевик, Триллер, Детектив", "year": "1987", "poster": "images/A.jpg"},
+      {"title": "Подозрительные лица", "genre": "Триллер, Детектив", "year": "1995", "poster": "images/ПЛ.jpg"},
+      {"title": "Реквием по мечте", "genre": "Психологическая драма", "year": "2000", "poster": "images/RD.jpg"},
+      {"title": "Аэроплан!", "genre": "Чёрная комедия, Пародия", "year": "1980", "poster": "images/plane.jpg"},
+      {"title": "Шерлок", "genre": "Детектив, Триллер, Драма, Криминал", "year": "2010-2017", "poster": "images/SH.jpg"},
+      {"title": "Схватка", "genre": "Триллер, Криминал", "year": "1995", "poster": "images/heat.jpg"},
+      {"title": "Непрощённый", "genre": "Вестерн", "year": "1992", "poster": "images/UN.jpg"},
+      {"title": "Голый пистолет 33⅓: Последний выпад", "genre": "Комедия, Чёрная комедия", "year": "1994", "poster": "images/33.jpg"},
+      {"title": "Большой Лебовски", "genre": "Фарсовая комедия", "year": "1998", "poster": "images/TBL.jpg"},
+      {"title": "Адвокат дьявола", "genre": "Ужасы, Фэнтези", "year": "1997", "poster": "images/AD.jpg"},
+      {"title": "Прослушка", "genre": "Триллер, Драма, Криминал", "year": "2002-2008", "poster": "images/TW.jpg"},
+      {"title": "Могила светлячков", "genre": "Драма, Трагедия", "year": "1988", "poster": "images/GF.jpg"},
+      {"title": "Ночь в музее", "genre": "Комедия", "year": "2006", "poster": "images/NOM.jpg"},
+      {"title": "Ирландец", "genre": "Криминал, Триллер", "year": "2019", "poster": "images/irl.jpg"},
+      {"title": "Джуманджи", "genre": "Приключения", "year": "1995", "poster": "images/J.jpg"},
+      {"title": "Китайский квартал", "genre": "	Неонуар, Детектив, Триллер", "year": "1974", "poster": "images/CT.jpg"},
+      {"title": "Банши", "genre": "Боевик, Триллер, Драма, Криминал, Детектив", "year": "2013-2016", "poster": "images/banshee.jpg"},
+      {"title": "Рик и Морти", "genre": "Мультфильм, Комедия, Фантастика, Приключения", "year": "2013-", "poster": "images/RAM.jpg"},
+      {"title": "Общество мёртвых поэтов", "genre": "Драма", "year": "1989", "poster": "images/DPS.jpg"},
+      {"title": "Укрась прощальное утро цветами обещания ", "genre": "Аниме, Драма, Мелодрама, Приключения, Фэнтези", "year": "2018", "poster": "images/УПУЦО.jpg"},
+      {"title": "Семь", "genre": "Триллер", "year": "1995", "poster": "images/7.jpg"},
+      {"title": "Взвод", "genre": "Военная драма", "year": "1986", "poster": "images/взвод.jpg"},
+      {"title": "Малышка на миллион", "genre": "Спортивная драма", "year": "	2004", "poster": "images/MDB.jpg"},
+      {"title": "Большой куш", "genre": "Криминал, Комедия, Боевик", "year": "2000", "poster": "images/snatch.jpg"},
+      {"title": "Олдбой", "genre": "Триллер, Боевик", "year": "2003", "poster": "images/OB.jpg"},
+      {"title": "Лицо со шрамом", "genre": "Драма, Криминал, Боевик", "year": "1983", "poster": "images/SF.jpg"},
+      {"title": "Зеленая книга", "genre": "Биография, Комедия, Драма", "year": "2018", "poster": "images/GB.jpg"},
+      {"title": "Темный рыцарь", "genre": "Фантастика, Боевик, Триллер, Криминал, Драма", "year": "2008", "poster": "images/batman.jpg"},
+    ];
+
+    // Номер сохраняет исходную позицию фильма в списке HTML.
+    movies.forEach((movie, index) => {
+      movie.number = index + 1;
+      // Сохраняем все жанры фильма отдельным массивом для фильтрации.
+      movie.genres = movie.genre.split(",").map(g => g.trim()).filter(Boolean);
+    });
+
+    const grid = document.getElementById("grid");
+    const search = document.getElementById("search");
+    const genreSelect = document.getElementById("genre");
+    const count = document.getElementById("count");
+
+    // В фильтре каждый жанр показывается один раз, даже если встречается у многих фильмов.
+    const genres = [...new Set(movies.flatMap(m => m.genres))]
+      .sort((a, b) => a.localeCompare(b, "ru"));
+    genres.forEach(g => {
+      const option = document.createElement("option");
+      option.value = g;
+      option.textContent = g;
+      genreSelect.appendChild(option);
+    });
+
+    function makeCard(movie) {
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const img = document.createElement("img");
+      img.className = "poster";
+      img.src = movie.poster;
+      img.alt = "Постер: " + movie.title;
+      img.loading = "lazy";
+      img.addEventListener("error", () => {
+        const stub = document.createElement("div");
+        stub.className = "poster-stub";
+        stub.textContent = "Постер " + movie.title.replace(/^\D+/, "");
+        img.replaceWith(stub);
+      });
+
+      const info = document.createElement("div");
+      info.className = "info";
+
+      const title = document.createElement("h2");
+      title.className = "title";
+      title.textContent = "№" + movie.number + ". " + movie.title;
+
+      const genre = document.createElement("p");
+      genre.className = "meta";
+      genre.textContent = movie.genre.trim();
+
+      const year = document.createElement("p");
+      year.className = "year";
+      year.textContent = movie.year.trim();
+
+      // Порядок карточки: постер, название, все жанры, год.
+      info.append(title, genre, year);
+      card.append(img, info);
+      return card;
+    }
+
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      const genre = genreSelect.value;
+      const filtered = movies.filter(m =>
+        (!genre || m.genres.includes(genre)) &&
+        (!query || m.title.toLowerCase().includes(query))
+      );
+
+      grid.replaceChildren();
+      if (filtered.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "Ничего не найдено. Измени запрос или выбери другой жанр.";
+        grid.appendChild(empty);
+      } else {
+        const fragment = document.createDocumentFragment();
+        filtered.forEach(m => fragment.appendChild(makeCard(m)));
+        grid.appendChild(fragment);
+      }
+      count.textContent = "Показано " + filtered.length + " из " + movies.length;
+    }
+
+    search.addEventListener("input", render);
+    genreSelect.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>
