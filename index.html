@@ -129,7 +129,7 @@
 </head>
 <body>
   <header>
-    <h1>Мои любимые фильмы</h1>
+    <h1>Мои любимые фильмы\сериалы</h1>
     <p class="count" id="count"></p>
   </header>
 
@@ -201,10 +201,10 @@
       {"title": "Темный рыцарь", "genre": "Фантастика, Боевик, Триллер, Криминал, Драма", "year": "2008", "poster": "images/batman.jpg"},
     ];
 
-    // Номер сохраняет исходную позицию фильма в списке HTML.
+
     movies.forEach((movie, index) => {
       movie.number = index + 1;
-      // Сохраняем все жанры фильма отдельным массивом для фильтрации.
+
       movie.genres = movie.genre.split(",").map(g => g.trim()).filter(Boolean);
     });
 
@@ -213,7 +213,6 @@
     const genreSelect = document.getElementById("genre");
     const count = document.getElementById("count");
 
-    // В фильтре каждый жанр показывается один раз, даже если встречается у многих фильмов.
     const genres = [...new Set(movies.flatMap(m => m.genres))]
       .sort((a, b) => a.localeCompare(b, "ru"));
     genres.forEach(g => {
@@ -253,8 +252,7 @@
       const year = document.createElement("p");
       year.className = "year";
       year.textContent = movie.year.trim();
-
-      // Порядок карточки: постер, название, все жанры, год.
+      
       info.append(title, genre, year);
       card.append(img, info);
       return card;
